@@ -7,10 +7,10 @@ st.set_page_config(page_title="IMDb Talent Report Engine", layout="centered")
 st.title("🎬 IMDb Talent Profile Generator")
 st.write("Search for an actor or actress to fetch live data from IMDb and generate a professional profile report.")
 
-# Initialize the API client
+# Initialize the API client specifying the live HTTP system
 @st.cache_resource
 def get_imdb_client():
-    return Cinemagoer()
+    return Cinemagoer(accessSystem='http')
 
 ia = get_imdb_client()
 
@@ -19,32 +19,27 @@ search_query = st.text_input("Enter Talent Name (e.g., Tom Hanks, Meryl Streep)"
 
 if search_query:
     with st.spinner("Searching IMDb database archives..."):
-        # Find matching people profiles
         search_results = ia.search_person(search_query)
         
     if search_results:
-        # Pick the top logical match from search results
         chosen_person = search_results[0]
         person_id = chosen_person.personID
         
         with st.spinner(f"Retrieving full profile metadata for ID: {person_id}..."):
-            # Fetch complete deep details (biography and filmography)
             person_data = ia.get_person(person_id, info=['main', 'biography', 'filmography'])
             
-        # Parse the raw name mapping safely
         actor_name = person_data.get('name', 'Unknown Artist')
         st.subheader(f"Target Selected: {actor_name}")
         
         # Safely parse biography text snippet
         bios = person_data.get('biography', [])
         bio_text = bios[0] if isinstance(bios, list) and bios else "No public biography details found on file."
-        # Truncate overly long text fields for cleaner visibility
+        
         if len(bio_text) > 600:
             bio_text = bio_text[:600] + "..."
             
         st.markdown(f"**Bio Preview:** {bio_text}")
         
-        # Process and structure top 8 clean filmography records
         filmography_items = []
         raw_filmography = person_data.get('filmography', {})
         
@@ -61,7 +56,6 @@ if search_query:
             
         st.divider()
         
-        # Trigger report assembly when button action is confirmed
         if st.button("🚀 Compile Vector Layout PDF"):
             with st.spinner("Structuring ReportLab flowable elements..."):
                 pdf_stream = create_talent_pdf(
