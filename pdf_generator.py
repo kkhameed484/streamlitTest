@@ -93,8 +93,8 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
             formatted_row.append(Paragraph(str(cell), current_style))
         formatted_table_data.append(formatted_row)
         
-    # Standard printable width allocation
-    col_widths =
+    # Standard printable width allocation (Must sum to 540)
+    col_widths = [70, 320, 150]
     
     credit_table = Table(formatted_table_data, colWidths=col_widths)
     credit_table.setStyle(TableStyle([
