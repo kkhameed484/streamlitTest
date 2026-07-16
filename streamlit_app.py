@@ -1,43 +1,81 @@
 import streamlit as st
-# Import the function module directly from your local file directory
-from pdf_generator import create_report_pdf
+from imdb import Cinemagoer
+from pdf_generator import create_talent_pdf
 
-st.set_page_config(page_title="PDF Engine Client", layout="centered")
+st.set_page_config(page_title="IMDb Talent Report Engine", layout="centered")
 
-st.title("💼 Enterprise PDF Generator")
-st.write("Fill out the configuration dashboard settings to dynamically construct a personalized ReportLab download binary file.")
+st.title("🎬 IMDb Talent Profile Generator")
+st.write("Search for an actor or actress to fetch live data from IMDb and generate a professional profile report.")
 
-# Collect dynamic properties using Streamlit UI components
-form_user = st.text_input("Author Name", value="Jane Doe")
-form_title = st.text_input("Report Subject Header", value="Q3 Cloud Infrastructure Metrics Summary")
+# Initialize the API client
+@st.cache_resource
+def get_imdb_client():
+    return Cinemagoer()
 
-# Setup a clean mockup grid array dataset
-mock_dataset = [
-    ["Target Platform Server", "Regional Zone", "System Load Balance"],
-    ["AWS Cloud Infrastructure Instance 01", "us-east-1", "Operational - 42% Capacity"],
-    ["Google Cloud Engine Storage Cluster", "us-central1", "Operational - 18% Capacity"],
-    ["Microsoft Azure Active Directory Node", "eu-west-2", "Degraded - 89% Capacity Request Surge"]
-]
+ia = get_imdb_client()
 
-st.divider()
-st.subheader("Preview Dataset Matrix")
-st.table(mock_dataset)
+# Search UI Element
+search_query = st.text_input("Enter Talent Name (e.g., Tom Hanks, Meryl Streep)", value="Tom Hanks")
 
-# Trigger calculation call when the download button is invoked by the browser client
-if st.button("🚀 Compile and Prepare Document Stream"):
-    with st.spinner("Processing vector graphics layout assets..."):
-        # Compile document through the standalone layout engine backend file
-        processed_pdf_stream = create_report_pdf(
-            user_name=form_user,
-            report_title=form_title,
-            table_data=mock_dataset
-        )
+if search_query:
+    with st.spinner("Searching IMDb database archives..."):
+        # Find matching people profiles
+        search_results = ia.search_person(search_query)
         
-        # Present the generated buffer to the client via native browser download mechanics
-        st.download_button(
-            label="💾 Download Generated PDF File",
-            data=processed_pdf_stream,
-            file_name="enterprise_system_report.pdf",
-            mime="application/pdf"
-        )
-        st.success("PDF compilation successfully written into memory channel stream!")
+    if search_results:
+        # Pick the top logical match from search results
+        chosen_person = search_results[0]
+        person_id = chosen_person.personID
+        
+        with st.spinner(f"Retrieving full profile metadata for ID: {person_id}..."):
+            # Fetch complete deep details (biography and filmography)
+            person_data = ia.get_person(person_id, info=['main', 'biography', 'filmography'])
+            
+        # Parse the raw name mapping safely
+        actor_name = person_data.get('name', 'Unknown Artist')
+        st.subheader(f"Target Selected: {actor_name}")
+        
+        # Safely parse biography text snippet
+        bios = person_data.get('biography', [])
+        bio_text = bios[0] if isinstance(bios, list) and bios else "No public biography details found on file."
+        # Truncate overly long text fields for cleaner visibility
+        if len(bio_text) > 600:
+            bio_text = bio_text[:600] + "..."
+            
+        st.markdown(f"**Bio Preview:** {bio_text}")
+        
+        # Process and structure top 8 clean filmography records
+        filmography_items = []
+        raw_filmography = person_data.get('filmography', {})
+        
+        # Look across acting/actress category buckets dynamically
+        acting_key = 'actor' if 'actor' in raw_filmography else 'actress'
+        project_list = raw_filmography.get(acting_key, [])[:8] # Target top 8 records
+        
+        for project in project_list:
+            filmography_items.append({
+                'year': project.get('year', 'N/A'),
+                'title': project.get('title', 'Untitled Project'),
+                'role': acting_key.capitalize()
+            })
+            
+        st.divider()
+        
+        # Trigger report assembly when button action is confirmed
+        if st.button("🚀 Compile Vector Layout PDF"):
+            with st.spinner("Structuring ReportLab flowable elements..."):
+                pdf_stream = create_talent_pdf(
+                    actor_name=actor_name,
+                    bio_summary=bio_text,
+                    filmography_data=filmography_items
+                )
+                
+                st.download_button(
+                    label=f"💾 Download {actor_name} PDF Profile",
+                    data=pdf_stream,
+                    file_name=f"{actor_name.lower().replace(' ', '_')}_profile.pdf",
+                    mime="application/pdf"
+                )
+                st.success("PDF compilation successfully written into memory channel stream!")
+    else:
+        st.error("No matches found for that name. Please check spelling configurations and try again.")
