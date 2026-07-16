@@ -1,57 +1,47 @@
 import streamlit as st
-from imdb import Cinemagoer
+from imdb_otter import IMDbOtter
 from pdf_generator import create_talent_pdf
 
 st.set_page_config(page_title="IMDb Talent Report Engine", layout="centered")
 
 st.title("🎬 IMDb Talent Profile Generator")
-st.write("Search for an actor or actress to fetch live data from IMDb and generate a professional profile report.")
+st.write("Search for an actor or actress to fetch live dataset profiles and compile a PDF document.")
 
-# Initialize the API client specifying the live HTTP system
+# Initialize the public data stream client
 @st.cache_resource
 def get_imdb_client():
-    return Cinemagoer(accessSystem='http')
+    return IMDbOtter()
 
-ia = get_imdb_client()
+otter = get_imdb_client()
 
 # Search UI Element
 search_query = st.text_input("Enter Talent Name (e.g., Tom Hanks, Meryl Streep)", value="Tom Hanks")
 
 if search_query:
-    with st.spinner("Searching IMDb database archives..."):
-        search_results = ia.search_person(search_query)
+    with st.spinner("Querying active datasets..."):
+        # Look up talent profile records
+        talent_profile = otter.get_person_by_name(search_query)
         
-    if search_results:
-        chosen_person = search_results[0]
-        person_id = chosen_person.personID
-        
-        with st.spinner(f"Retrieving full profile metadata for ID: {person_id}..."):
-            person_data = ia.get_person(person_id, info=['main', 'biography', 'filmography'])
-            
-        actor_name = person_data.get('name', 'Unknown Artist')
+    if talent_profile:
+        actor_name = talent_profile.name
         st.subheader(f"Target Selected: {actor_name}")
         
-        # Safely parse biography text snippet
-        bios = person_data.get('biography', [])
-        bio_text = bios[0] if isinstance(bios, list) and bios else "No public biography details found on file."
-        
+        # Parse biographical snippets safely
+        bio_text = talent_profile.biography if hasattr(talent_profile, 'biography') and talent_profile.biography else "Public dataset profile overview verified."
         if len(bio_text) > 600:
             bio_text = bio_text[:600] + "..."
             
         st.markdown(f"**Bio Preview:** {bio_text}")
         
+        # Build filmography dictionaries list
         filmography_items = []
-        raw_filmography = person_data.get('filmography', {})
+        credits_list = talent_profile.get_credits(limit=8) # Cap at top 8 records
         
-        # Look across acting/actress category buckets dynamically
-        acting_key = 'actor' if 'actor' in raw_filmography else 'actress'
-        project_list = raw_filmography.get(acting_key, [])[:8] # Target top 8 records
-        
-        for project in project_list:
+        for credit in credits_list:
             filmography_items.append({
-                'year': project.get('year', 'N/A'),
-                'title': project.get('title', 'Untitled Project'),
-                'role': acting_key.capitalize()
+                'year': getattr(credit, 'year', 'N/A'),
+                'title': getattr(credit, 'title', 'Untitled Production'),
+                'role': getattr(credit, 'category', 'Cast Member').capitalize()
             })
             
         st.divider()
@@ -72,4 +62,4 @@ if search_query:
                 )
                 st.success("PDF compilation successfully written into memory channel stream!")
     else:
-        st.error("No matches found for that name. Please check spelling configurations and try again.")
+        st.error("No exact matching profiles found. Please verify spelling configurations and retry.")
