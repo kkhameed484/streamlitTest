@@ -1,16 +1,21 @@
-import os
+import streamlit as st
+import io
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-def create_test_pdf(output_filename="reportlab_test.pdf"):
-    print("Initializing document setup...")
+st.title("📄 PDF Generation Dashboard")
+st.write("Click the button below to generate and test your ReportLab PDF layout.")
+
+def generate_pdf_stream():
+    # 1. Create an in-memory buffer instead of a local file path
+    pdf_buffer = io.BytesIO()
     
-    # 1. Page Geometry Configuration (Letter size with 0.5-inch margins)
-    margin = 36  # 72 points = 1 inch, so 36 points = 0.5 inch
+    # 2. Initialize the Document Template
+    margin = 36  # 0.5 inch margins
     doc = SimpleDocTemplate(
-        output_filename,
+        pdf_buffer,
         pagesize=letter,
         leftMargin=margin,
         rightMargin=margin,
@@ -18,35 +23,31 @@ def create_test_pdf(output_filename="reportlab_test.pdf"):
         bottomMargin=margin
     )
     
-    # Calculate usable content width: Letter width (612) - left (36) - right (36) = 540 points
-    usable_width = 540 
-    
-    # 2. Typography Hierarchy Definition
+    # 3. Setup Typography
     styles = getSampleStyleSheet()
     
-    # Crucial: Always pair custom fontSize with matching leading to prevent overlapping text
-    header_style = ParagraphStyle(
-        'HeaderStyle',
+    title_style = ParagraphStyle(
+        'DocTitle',
         parent=styles['Heading1'],
         fontName='Helvetica-Bold',
-        fontSize=22,
-        leading=26,
-        textColor=colors.HexColor('#0F172A'), # Dark slate
+        fontSize=24,
+        leading=28,
+        textColor=colors.HexColor('#1E3A8A'),  # Deep Blue
         spaceAfter=12
     )
     
     body_style = ParagraphStyle(
-        'BodyStyle',
+        'DocBody',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=10,
-        leading=15,
-        textColor=colors.HexColor('#334155'), # Charcoal
-        spaceAfter=8
+        fontSize=11,
+        leading=16,
+        textColor=colors.HexColor('#334155'),  # Dark Slate (Visible text)
+        spaceAfter=10
     )
     
     table_header_style = ParagraphStyle(
-        'TableHeader',
+        'TableHeaderText',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
         fontSize=10,
@@ -54,75 +55,68 @@ def create_test_pdf(output_filename="reportlab_test.pdf"):
         textColor=colors.white
     )
 
-    # 3. Building Content Flow (The Story)
+    # 4. Assemble the Document Content
     story = []
     
-    # Document Header Banner
-    story.append(Paragraph("ReportLab Verification Test", header_style))
-    story.append(Paragraph("System Architecture Framework Status Report", body_style))
-    story.append(Spacer(1, 15)) # Vertical spacer (15 points)
+    story.append(Paragraph("System Diagnostic Verification Report", title_style))
+    story.append(Spacer(1, 10))
     
-    # Sample Narrative Text Block
-    sample_text = (
-        "This executable test script validates the baseline environment configuration for "
-        "the Python ReportLab implementation. By rendering this multi-page automated canvas, "
-        "the engine confirms accurate font metrics mapping, coordinate system matrix math, "
-        "and logical programmatic page wrap triggers."
+    intro_text = (
+        "This document confirms that your Streamlit deployment environment is fully "
+        "integrated with the ReportLab PDF processing engine. If you can see this text, "
+        "your font rendering matrices and paragraph flow architectures are functioning properly."
     )
-    story.append(Paragraph(sample_text, body_style))
-    story.append(Spacer(1, 20))
+    story.append(Paragraph(intro_text, body_style))
+    story.append(Spacer(1, 15))
     
-    # 4. Constructing Structured Grid Matrix (Table Layout)
-    # Wrapping cells in Paragraphs guarantees text auto-wraps within column constraints
-    raw_table_data = [
-        ["Component Module", "Target Engine", "Integration Status"],
-        ["Canvas Vector Engine", "Core-Graphics v4", "Verified Operational"],
-        ["Font TrueType Engine", "Helvetica Native", "Verified Operational"],
-        ["Flowable Layout Engine", "PLATYPUS Stream", "Verified Operational"],
-        ["Dynamic Memory Buffering", "I/O ByteStream", "Verified Operational"],
-        ["Multi-page Spill Over Test", "Page Break Engine", "Forcing Page 2 Transition..."]
+    # 5. Data Matrix Grid
+    raw_data = [
+        ["Module Name", "Environment Baseline", "Status Validation"],
+        ["Streamlit Cloud Core", "Python Container Runtime", "Verified Operational"],
+        ["ReportLab Library", "PLATYPUS Layout Engine", "Verified Operational"],
+        ["BytesIO Buffer Stream", "In-Memory Serialization", "Verified Operational"]
     ]
     
+    # Wrap text in Paragraph objects to guarantee visible text processing
     formatted_data = []
-    for row_idx, row in enumerate(raw_table_data):
+    for row_idx, row in enumerate(raw_data):
         formatted_row = []
         for cell in row:
             current_style = table_header_style if row_idx == 0 else body_style
             formatted_row.append(Paragraph(cell, current_style))
         formatted_data.append(formatted_row)
         
-    # Strictly define concrete column widths summing up exactly to usable_width (540)
-    col_widths = [160, 140, 240] 
+    # Set explicit visible column widths (totaling 540 points for printable area width)
+    explicit_widths = [180, 200, 160]
     
-    # Generate long list data to demonstrate automated page cascading boundaries
-    # Duplicating rows guarantees the matrix overflows onto page 2 safely
-    for _ in range(3): 
-        for row in raw_table_data[1:]:
-            formatted_data.append([Paragraph(cell, body_style) for cell in row])
-            
-    # Apply Visual Formatting Matrix Styles
-    status_table = Table(formatted_data, colWidths=col_widths, repeatRows=1)
-    status_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E293B')), # Header Navy Fill
+    diagnostic_table = Table(formatted_data, colWidths=explicit_widths)
+    diagnostic_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1E3A8A')),  # Dark header background
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]), # Alternating stripes
-        ('LINEBELOW', (0, 0), (-1, 0), 2, colors.HexColor('#0F172A')), # Bold line below header
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')), # Outer grid wireframe
+        ('LEFTPADDING', (0, 0), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),  # Visible wireframe
     ]))
     
-    story.append(status_table)
+    story.append(diagnostic_table)
     
-    # 5. Build Engine Call
-    print("Compiling document flowables into PDF layout...")
+    # 6. Build the PDF into the buffer memory stream
     doc.build(story)
     
-    # Absolute confirmation path output check
-    absolute_path = os.path.abspath(output_filename)
-    print(f"\nSuccess! File generated at:\n{absolute_path}")
+    # Reset buffer cursor pointer back to the start so Streamlit can read it cleanly
+    pdf_buffer.seek(0)
+    return pdf_buffer
 
-if __name__ == "__main__":
-    create_test_pdf()
+# Trigger PDF compilation
+pdf_data = generate_pdf_stream()
+
+# Add a prominent download UI interaction element to Streamlit
+st.download_button(
+    label="📥 Download Generated PDF Report",
+    data=pdf_data,
+    file_name="streamlit_reportlab_success.pdf",
+    mime="application/pdf"
+)
