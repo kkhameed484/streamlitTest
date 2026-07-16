@@ -81,8 +81,8 @@ def create_report_pdf(user_name, report_title, table_data):
             formatted_cols.append(Paragraph(str(cell_text), current_style))
         formatted_rows.append(formatted_cols)
         
-    # Explicitly size columns to safely fill out the 540-point printable width
-    col_widths = 
+    # Set concrete column widths totaling exactly 540 points
+    col_widths = [180, 100, 260]
     
     data_table = Table(formatted_rows, colWidths=col_widths)
     data_table.setStyle(TableStyle([
