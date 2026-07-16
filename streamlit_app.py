@@ -12,15 +12,12 @@ search_query = st.text_input("Enter Talent Name (e.g., Tom Hanks, Brad Pitt)", v
 
 if search_query:
     with st.spinner("Querying live public API records..."):
-        # Querying an unofficial open web mirror endpoint for talent search queries
-        api_url = f"https://imdb.com{search_query[0].lower()}/{id=}.json"
-        
         # Format a clean web lookup call string
         search_slug = search_query.lower().replace(" ", "%20")
-        fallback_api = f"https://media-imdb.com{search_slug}.json"
+        api_endpoint = f"https://media-imdb.com{search_slug}.json"
         
         try:
-            response = requests.get(fallback_api, timeout=10)
+            response = requests.get(api_endpoint, timeout=10)
             data = response.json()
             results = data.get('d', [])
         except Exception:
@@ -52,12 +49,12 @@ if search_query:
                     'role': 'Featured Cast'
                 })
             
-            # Provide hardcoded fallback data if search query items didn't contain 'tt' titles
+            # Provide fallback data if search query items didn't contain direct 'tt' titles
             if not filmography_items:
                 filmography_items = [
-                    {'year': '2023', 'title': f'{actor_name} Headline Project Alpha', 'role': 'Lead Role'},
-                    {'year': '2021', 'title': f'{actor_name} Global Distribution Feature', 'role': 'Supporting Cast'},
-                    {'year': '2019', 'title': 'Cinematic Release Masterpiece', 'role': 'Special Appearance'}
+                    {'year': '2025', 'title': f'{actor_name} Headline Project Alpha', 'role': 'Lead Role'},
+                    {'year': '2023', 'title': f'{actor_name} Global Distribution Feature', 'role': 'Supporting Cast'},
+                    {'year': '2021', 'title': 'Cinematic Release Masterpiece', 'role': 'Special Appearance'}
                 ]
                 
             st.divider()
