@@ -63,17 +63,17 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
 
     story = []
     
-    # 1. Header Sections
+    # 1. Title Banner
     story.append(Paragraph(actor_name, title_style))
     story.append(Paragraph("Verified IMDb Talent Profile & Credits Summary", subtitle_style))
     story.append(Spacer(1, 5))
     
-    # 2. Biography Section
+    # 2. Biography Block
     story.append(Paragraph("Biography Overview", ParagraphStyle('H2', parent=styles['Heading2'], fontSize=14, leading=18, textColor=colors.HexColor('#1E293B'), spaceAfter=6)))
     story.append(Paragraph(bio_summary, body_style))
     story.append(Spacer(1, 10))
     
-    # 3. Filmography Grid Matrix Setup
+    # 3. Structured Layout Matrix
     story.append(Paragraph("Featured Filmography Credits", ParagraphStyle('H2_2', parent=styles['Heading2'], fontSize=14, leading=18, textColor=colors.HexColor('#1E293B'), spaceAfter=8)))
     
     table_rows = [["Release Year", "Production Title / Project Name", "Talent Credit Role"]]
@@ -82,7 +82,7 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
         table_rows.append([
             str(item.get('year', 'N/A')),
             item.get('title', 'Unknown Project'),
-            item.get('role', 'Actor/Actress')
+            item.get('role', 'Cast Member')
         ])
         
     formatted_table_data = []
@@ -93,7 +93,7 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
             formatted_row.append(Paragraph(str(cell), current_style))
         formatted_table_data.append(formatted_row)
         
-    # Printable grid area allocation
+    # Standard printable width allocation
     col_widths =
     
     credit_table = Table(formatted_table_data, colWidths=col_widths)
