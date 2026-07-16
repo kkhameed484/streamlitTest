@@ -76,7 +76,6 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
     # 3. Filmography Grid Matrix Setup
     story.append(Paragraph("Featured Filmography Credits", ParagraphStyle('H2_2', parent=styles['Heading2'], fontSize=14, leading=18, textColor=colors.HexColor('#1E293B'), spaceAfter=8)))
     
-    # Define matrix columns: [Year, Project Title, Credit Role]
     table_rows = [["Release Year", "Production Title / Project Name", "Talent Credit Role"]]
     
     for item in filmography_data:
@@ -86,7 +85,6 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
             item.get('role', 'Actor/Actress')
         ])
         
-    # Wrap text in Paragraph objects to guarantee visible text auto-wrapping within cells
     formatted_table_data = []
     for row_idx, row in enumerate(table_rows):
         formatted_row = []
@@ -96,7 +94,7 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
         formatted_table_data.append(formatted_row)
         
     # Standard printable width is 540 points. Break down column allocation:
-    col_widths = [100, 290, 150]
+    col_widths = [100, 300, 140]
     
     credit_table = Table(formatted_table_data, colWidths=col_widths)
     credit_table.setStyle(TableStyle([
