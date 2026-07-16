@@ -1,2 +1,2 @@
 reportlab
-imdb-otter
+requests
