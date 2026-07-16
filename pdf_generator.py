@@ -38,7 +38,7 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
         fontName='Helvetica-Bold',
         fontSize=12,
         leading=16,
-        textColor=colors.HexColor('#EAB308'), # IMDb Gold Accent
+        textColor=colors.HexColor('#EAB308'), # IMDb Gold
         spaceAfter=12
     )
     
@@ -93,12 +93,12 @@ def create_talent_pdf(actor_name, bio_summary, filmography_data):
             formatted_row.append(Paragraph(str(cell), current_style))
         formatted_table_data.append(formatted_row)
         
-    # Standard printable width is 540 points. Break down column allocation:
-    col_widths = [100, 300, 140]
+    # Printable grid area allocation
+    col_widths =
     
     credit_table = Table(formatted_table_data, colWidths=col_widths)
     credit_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')), # Slate dark header
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F172A')),
         ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TOPPADDING', (0, 0), (-1, -1), 6),
